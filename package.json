@@ -6,8 +6,8 @@
   "scripts": {
     "start": "node src/server/index.js",
     "dev": "nodemon src/server/index.js",
-    "build": "cd client && npm install && npm run build",
-    "heroku-postbuild": "npm run build",
+    "build": "npm install && cd client && npm install && npm run build",
+    "render-build": "npm run build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

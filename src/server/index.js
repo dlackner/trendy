@@ -199,9 +199,22 @@ app.get('/api/health', (req, res) => {
 
 // Serve React app for any non-API routes in production
 if (process.env.NODE_ENV === 'production') {
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../../client/build', 'index.html'));
-  });
+  const buildPath = path.join(__dirname, '../../client/build');
+  const fs = require('fs');
+  
+  if (fs.existsSync(buildPath)) {
+    app.get('*', (req, res) => {
+      res.sendFile(path.join(buildPath, 'index.html'));
+    });
+  } else {
+    app.get('/', (req, res) => {
+      res.json({ 
+        message: 'Trendy API Server', 
+        status: 'Build files not found. Please run: npm run build',
+        endpoints: ['/api/stocks', '/api/analyze/:symbol', '/api/opportunities', '/api/backtest']
+      });
+    });
+  }
 }
 
 app.listen(PORT, () => {
