@@ -1,0 +1,124 @@
+.stock-list {
+  background: #f9fafb;
+  border-radius: 12px;
+  padding: 20px;
+  height: fit-content;
+}
+
+.stock-list h3 {
+  color: #374151;
+  margin-bottom: 20px;
+  font-size: 1.1em;
+}
+
+.search-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.stock-search-input {
+  flex: 1;
+  padding: 10px 15px;
+  border: 2px solid #e5e7eb;
+  border-radius: 25px;
+  font-size: 14px;
+  background: white;
+  transition: all 0.2s ease;
+}
+
+.stock-search-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.clear-search {
+  padding: 10px 20px;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 25px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.clear-search:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+}
+
+.stock-count {
+  color: #6b7280;
+  font-size: 0.9em;
+  margin-bottom: 15px;
+}
+
+.stock-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.stock-item {
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 20px;
+  padding: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.stock-item:hover {
+  border-color: #667eea;
+  transform: translateX(4px);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+}
+
+.stock-item.selected {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: transparent;
+}
+
+.stock-item .symbol {
+  font-weight: 700;
+  font-size: 1.1em;
+  margin-bottom: 4px;
+}
+
+.stock-item .name {
+  font-size: 0.85em;
+  opacity: 0.8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.stock-grid::-webkit-scrollbar {
+  width: 8px;
+}
+
+.stock-grid::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.stock-grid::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.stock-grid::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}

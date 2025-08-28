@@ -1,0 +1,160 @@
+.stock-analysis {
+  width: 100%;
+}
+
+.analysis-header {
+  border-bottom: 2px solid #e5e7eb;
+  padding-bottom: 20px;
+  margin-bottom: 30px;
+}
+
+.analysis-header h2 {
+  color: #1f2937;
+  font-size: 1.8em;
+  margin-bottom: 15px;
+}
+
+.key-metrics {
+  display: flex;
+  gap: 30px;
+  flex-wrap: wrap;
+}
+
+.metric {
+  display: flex;
+  flex-direction: column;
+}
+
+.metric .label {
+  color: #6b7280;
+  font-size: 0.9em;
+  margin-bottom: 4px;
+}
+
+.metric .value {
+  color: #1f2937;
+  font-size: 1.2em;
+  font-weight: 600;
+}
+
+.metric .value.red-streak {
+  color: #ef4444;
+}
+
+.metric .value.no-streak {
+  color: #10b981;
+}
+
+.opportunity-alert {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  color: white;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 30px;
+  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+}
+
+.opportunity-alert h3 {
+  font-size: 1.3em;
+  margin-bottom: 10px;
+}
+
+.opportunity-alert p {
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+
+.opportunity-alert strong {
+  font-size: 1.2em;
+  text-decoration: underline;
+}
+
+.opportunity-alert .positive {
+  color: #10b981;
+}
+
+.opportunity-alert .negative {
+  color: #ef4444;
+}
+
+.charts-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  margin-bottom: 30px;
+}
+
+@media (max-width: 1024px) {
+  .charts-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+.chart {
+  background: #f9fafb;
+  padding: 20px;
+  border-radius: 12px;
+}
+
+.chart h3 {
+  color: #374151;
+  margin-bottom: 20px;
+  font-size: 1.1em;
+}
+
+.probability-table {
+  background: #f9fafb;
+  padding: 20px;
+  border-radius: 12px;
+}
+
+.probability-table h3 {
+  color: #374151;
+  margin-bottom: 20px;
+  font-size: 1.1em;
+}
+
+.probability-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.probability-table th {
+  background: #e5e7eb;
+  color: #374151;
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+}
+
+.probability-table td {
+  padding: 12px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.probability-table tr.current {
+  background: #fef3c7;
+}
+
+.probability-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.9em;
+}
+
+.probability-badge.high {
+  background: #10b981;
+  color: white;
+}
+
+.probability-badge.medium {
+  background: #fbbf24;
+  color: white;
+}
+
+.probability-badge.low {
+  background: #ef4444;
+  color: white;
+}
