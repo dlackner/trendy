@@ -27,13 +27,17 @@
   background: rgba(255, 251, 243, 0.7);
   padding: 30px;
   border-radius: 30px;
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 25px;
   align-items: end;
-  flex-wrap: wrap;
   margin-bottom: 30px;
   backdrop-filter: blur(10px);
   box-shadow: 0 4px 20px rgba(139, 119, 101, 0.08);
+}
+
+.backtest-controls .portfolio-selector {
+  grid-column: 1 / -1;
 }
 
 .backtest-controls .control-group {
@@ -315,8 +319,9 @@
 
 /* Portfolio Selector */
 .portfolio-selector {
-  flex: 2;
-  max-width: 600px;
+  flex: 1;
+  width: 100%;
+  max-width: none;
 }
 
 .stock-chips {
@@ -325,10 +330,13 @@
   gap: 8px;
   margin: 10px 0;
   min-height: 40px;
+  max-width: 100%;
   padding: 10px;
   background: rgba(255, 255, 255, 0.3);
   border-radius: 15px;
   border: 1px solid rgba(139, 119, 101, 0.1);
+  justify-content: flex-start;
+  align-items: center;
 }
 
 .stock-chip {
@@ -341,6 +349,8 @@
   align-items: center;
   gap: 8px;
   animation: fadeIn 0.3s ease;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .stock-chip button {
