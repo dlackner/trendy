@@ -17,7 +17,13 @@ const Alerts = ({ apiUrl, stocks }) => {
       volumeMultiplier: 2,
       rsi: { level: 30, direction: 'below' },
       probability: 70,
-      gainPercentage: 5
+      gainPercentage: 5,
+      combination: {
+        conditions: [
+          { type: 'streak', streakLength: 3 },
+          { type: 'probability', probability: 70 }
+        ]
+      }
     },
     enabled: true
   });
@@ -59,7 +65,13 @@ const Alerts = ({ apiUrl, stocks }) => {
           volumeMultiplier: 2,
           rsi: { level: 30, direction: 'below' },
           probability: 70,
-          gainPercentage: 5
+          gainPercentage: 5,
+          combination: {
+            conditions: [
+              { type: 'streak', streakLength: 3 },
+              { type: 'probability', probability: 70 }
+            ]
+          }
         },
         enabled: true
       });
@@ -229,6 +241,195 @@ const Alerts = ({ apiUrl, stocks }) => {
             <div className="slider-help">Alert when expected average gain exceeds this percentage</div>
           </div>
         );
+      case 'combination':
+        return (
+          <div className="combination-conditions">
+            <div className="combination-header">
+              <h4>Multiple Conditions (ALL must be met)</h4>
+              <p>Create sophisticated alerts by combining multiple criteria</p>
+            </div>
+            
+            {newAlert.conditions.combination.conditions.map((condition, index) => (
+              <div key={index} className="combination-item">
+                <div className="combination-controls">
+                  <select
+                    value={condition.type}
+                    onChange={(e) => {
+                      const updatedConditions = [...newAlert.conditions.combination.conditions];
+                      updatedConditions[index] = { type: e.target.value, ...getDefaultConditionValues(e.target.value) };
+                      setNewAlert({
+                        ...newAlert,
+                        conditions: {
+                          ...newAlert.conditions,
+                          combination: { conditions: updatedConditions }
+                        }
+                      });
+                    }}
+                  >
+                    <option value="streak">Red Streak</option>
+                    <option value="probability">High Probability</option>
+                    <option value="gain">Expected Gain</option>
+                    <option value="volume">Volume Spike</option>
+                    <option value="rsi">RSI Level</option>
+                  </select>
+                  
+                  <div className="condition-details">
+                    {renderCombinationCondition(condition, index)}
+                  </div>
+                  
+                  <button
+                    type="button"
+                    className="remove-condition-btn"
+                    onClick={() => {
+                      const updatedConditions = newAlert.conditions.combination.conditions.filter((_, i) => i !== index);
+                      setNewAlert({
+                        ...newAlert,
+                        conditions: {
+                          ...newAlert.conditions,
+                          combination: { conditions: updatedConditions }
+                        }
+                      });
+                    }}
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            ))}
+            
+            <button
+              type="button"
+              className="add-condition-btn"
+              onClick={() => {
+                const updatedConditions = [...newAlert.conditions.combination.conditions, { type: 'streak', streakLength: 3 }];
+                setNewAlert({
+                  ...newAlert,
+                  conditions: {
+                    ...newAlert.conditions,
+                    combination: { conditions: updatedConditions }
+                  }
+                });
+              }}
+            >
+              + Add Another Condition
+            </button>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  const getDefaultConditionValues = (type) => {
+    switch (type) {
+      case 'streak':
+        return { streakLength: 3 };
+      case 'probability':
+        return { probability: 70 };
+      case 'gain':
+        return { gainPercentage: 5 };
+      case 'volume':
+        return { volumeMultiplier: 2 };
+      case 'rsi':
+        return { level: 30, direction: 'below' };
+      default:
+        return {};
+    }
+  };
+
+  const renderCombinationCondition = (condition, index) => {
+    const updateCondition = (updates) => {
+      const updatedConditions = [...newAlert.conditions.combination.conditions];
+      updatedConditions[index] = { ...updatedConditions[index], ...updates };
+      setNewAlert({
+        ...newAlert,
+        conditions: {
+          ...newAlert.conditions,
+          combination: { conditions: updatedConditions }
+        }
+      });
+    };
+
+    switch (condition.type) {
+      case 'streak':
+        return (
+          <div className="mini-condition">
+            <label>Red Days: {condition.streakLength}</label>
+            <input
+              type="range"
+              value={condition.streakLength}
+              onChange={(e) => updateCondition({ streakLength: parseInt(e.target.value) })}
+              min="1"
+              max="10"
+              className="mini-slider"
+            />
+          </div>
+        );
+      case 'probability':
+        return (
+          <div className="mini-condition">
+            <label>Probability: {condition.probability}%</label>
+            <input
+              type="range"
+              value={condition.probability}
+              onChange={(e) => updateCondition({ probability: parseInt(e.target.value) })}
+              min="50"
+              max="95"
+              step="5"
+              className="mini-slider"
+            />
+          </div>
+        );
+      case 'gain':
+        return (
+          <div className="mini-condition">
+            <label>Gain: {condition.gainPercentage}%</label>
+            <input
+              type="range"
+              value={condition.gainPercentage}
+              onChange={(e) => updateCondition({ gainPercentage: parseInt(e.target.value) })}
+              min="1"
+              max="20"
+              className="mini-slider"
+            />
+          </div>
+        );
+      case 'volume':
+        return (
+          <div className="mini-condition">
+            <label>Volume: {condition.volumeMultiplier}x</label>
+            <input
+              type="range"
+              value={condition.volumeMultiplier}
+              onChange={(e) => updateCondition({ volumeMultiplier: parseFloat(e.target.value) })}
+              min="1"
+              max="10"
+              step="0.1"
+              className="mini-slider"
+            />
+          </div>
+        );
+      case 'rsi':
+        return (
+          <div className="mini-condition">
+            <label>RSI {condition.direction} {condition.level}</label>
+            <input
+              type="range"
+              value={condition.level}
+              onChange={(e) => updateCondition({ level: parseInt(e.target.value) })}
+              min="1"
+              max="99"
+              className="mini-slider"
+            />
+            <select
+              value={condition.direction}
+              onChange={(e) => updateCondition({ direction: e.target.value })}
+            >
+              <option value="below">Below</option>
+              <option value="above">Above</option>
+            </select>
+          </div>
+        );
       default:
         return null;
     }
@@ -248,6 +449,24 @@ const Alerts = ({ apiUrl, stocks }) => {
         return `Bounce probability ≥ ${alert.conditions.probability}%`;
       case 'gain':
         return `Expected gain ≥ ${alert.conditions.gainPercentage}%`;
+      case 'combination':
+        const conditionTexts = alert.conditions.combination.conditions.map(condition => {
+          switch (condition.type) {
+            case 'streak':
+              return `${condition.streakLength} red days`;
+            case 'probability':
+              return `≥${condition.probability}% probability`;
+            case 'gain':
+              return `≥${condition.gainPercentage}% gain`;
+            case 'volume':
+              return `${condition.volumeMultiplier}x volume`;
+            case 'rsi':
+              return `RSI ${condition.direction} ${condition.level}`;
+            default:
+              return 'unknown';
+          }
+        });
+        return `ALL: ${conditionTexts.join(' + ')}`;
       default:
         return 'Unknown condition';
     }
@@ -296,6 +515,12 @@ const Alerts = ({ apiUrl, stocks }) => {
                 <h4>High Expected Gain</h4>
                 <p>Alerts when the historical average gain after a bounce exceeds your threshold. This finds stocks that not only bounce, but bounce with significant gains.</p>
                 <div className="explanation-example">Example: NVDA averages 5.2% gains after red streaks</div>
+              </div>
+
+              <div className="explanation-card">
+                <h4>Smart Combination (Multiple Conditions)</h4>
+                <p>Combine multiple alert conditions that ALL must be met simultaneously. Create sophisticated alerts like "3 red days + 70% probability + 5% expected gain" for high-confidence setups.</p>
+                <div className="explanation-example">Example: AAPL has 3 red days AND 80% bounce probability AND 6% expected gain</div>
               </div>
 
               <div className="explanation-card">
@@ -386,6 +611,7 @@ const Alerts = ({ apiUrl, stocks }) => {
                 <option value="streak">Red Streak (Bounce Setup)</option>
                 <option value="probability">High Probability Bounce</option>
                 <option value="gain">High Expected Gain</option>
+                <option value="combination">Smart Combination (Multiple Conditions)</option>
                 <option value="price">Price Change</option>
                 <option value="volume">Volume Spike</option>
                 <option value="rsi">RSI Level</option>

@@ -198,6 +198,109 @@ async function evaluateAlert(alert) {
         }
         break;
 
+      case 'combination':
+        // Evaluate all conditions - ALL must be met
+        const combinationAnalysis = await analyzer.analyzeStock(symbol, 3, 252);
+        const results = [];
+        let allConditionsMet = true;
+
+        for (const condition of conditions.combination.conditions) {
+          let conditionMet = false;
+          let conditionResult = '';
+
+          switch (condition.type) {
+            case 'streak':
+              if (combinationAnalysis.currentStreak >= condition.streakLength && combinationAnalysis.currentStreak > 0) {
+                conditionMet = true;
+                conditionResult = `${condition.streakLength} red days (has ${combinationAnalysis.currentStreak})`;
+              } else {
+                conditionResult = `${condition.streakLength} red days (has ${combinationAnalysis.currentStreak})`;
+              }
+              break;
+
+            case 'probability':
+              if (combinationAnalysis.currentStreak > 0) {
+                const currentProb = combinationAnalysis.probabilities[combinationAnalysis.currentStreak]?.probability || 0;
+                if (currentProb >= condition.probability) {
+                  conditionMet = true;
+                  conditionResult = `≥${condition.probability}% probability (has ${currentProb.toFixed(1)}%)`;
+                } else {
+                  conditionResult = `≥${condition.probability}% probability (has ${currentProb.toFixed(1)}%)`;
+                }
+              } else {
+                conditionResult = `≥${condition.probability}% probability (no current streak)`;
+              }
+              break;
+
+            case 'gain':
+              const expectedGain = combinationAnalysis.avgMovePercent?.positiveAvg || 0;
+              if (expectedGain >= condition.gainPercentage) {
+                conditionMet = true;
+                conditionResult = `≥${condition.gainPercentage}% gain (has ${expectedGain.toFixed(1)}%)`;
+              } else {
+                conditionResult = `≥${condition.gainPercentage}% gain (has ${expectedGain.toFixed(1)}%)`;
+              }
+              break;
+
+            case 'volume':
+              const volumeData = await analyzer.getHistoricalData(symbol, 'compact');
+              if (volumeData && volumeData.length >= 20) {
+                const currentVolume = volumeData[0].volume;
+                const avgVolume = volumeData.slice(1, 20).reduce((sum, day) => sum + day.volume, 0) / 19;
+                const volumeMultiplier = currentVolume / avgVolume;
+                
+                if (volumeMultiplier >= condition.volumeMultiplier) {
+                  conditionMet = true;
+                  conditionResult = `${condition.volumeMultiplier}x volume (has ${volumeMultiplier.toFixed(1)}x)`;
+                } else {
+                  conditionResult = `${condition.volumeMultiplier}x volume (has ${volumeMultiplier.toFixed(1)}x)`;
+                }
+              } else {
+                conditionResult = `${condition.volumeMultiplier}x volume (insufficient data)`;
+              }
+              break;
+
+            case 'rsi':
+              const rsiData = await analyzer.getHistoricalData(symbol, 'compact');
+              if (rsiData && rsiData.length >= 14) {
+                const rsi = calculateRSI(rsiData.slice(0, 14));
+                
+                if (condition.direction === 'below' && rsi <= condition.level) {
+                  conditionMet = true;
+                  conditionResult = `RSI ${condition.direction} ${condition.level} (has ${rsi.toFixed(1)})`;
+                } else if (condition.direction === 'above' && rsi >= condition.level) {
+                  conditionMet = true;
+                  conditionResult = `RSI ${condition.direction} ${condition.level} (has ${rsi.toFixed(1)})`;
+                } else {
+                  conditionResult = `RSI ${condition.direction} ${condition.level} (has ${rsi.toFixed(1)})`;
+                }
+              } else {
+                conditionResult = `RSI ${condition.direction} ${condition.level} (insufficient data)`;
+              }
+              break;
+          }
+
+          results.push({ type: condition.type, met: conditionMet, description: conditionResult });
+          if (!conditionMet) {
+            allConditionsMet = false;
+          }
+        }
+
+        if (allConditionsMet && results.length > 0) {
+          const metConditions = results.filter(r => r.met).map(r => r.description).join(', ');
+          return {
+            reason: `${symbol} meets ALL conditions: ${metConditions}`,
+            data: {
+              currentStreak: combinationAnalysis.currentStreak,
+              probability: combinationAnalysis.probabilities[combinationAnalysis.currentStreak]?.probability,
+              expectedGain: combinationAnalysis.avgMovePercent?.positiveAvg,
+              price: combinationAnalysis.currentPrice,
+              conditions: results
+            }
+          };
+        }
+        break;
+
       case 'price':
         // Get recent price data to check for price changes
         const priceData = await analyzer.getHistoricalData(symbol, 'compact');

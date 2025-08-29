@@ -612,6 +612,157 @@
   }
 }
 
+/* Combination Alerts Styles */
+.combination-conditions {
+  background: rgba(139, 119, 101, 0.05);
+  border-radius: 15px;
+  padding: 20px;
+  border: 1px solid rgba(139, 119, 101, 0.1);
+}
+
+.combination-header h4 {
+  color: #3d3028;
+  font-size: 1.1em;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.combination-header p {
+  color: #6b5d54;
+  font-size: 0.85em;
+  margin-bottom: 20px;
+  opacity: 0.8;
+}
+
+.combination-item {
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 15px;
+  border: 1px solid rgba(139, 119, 101, 0.1);
+}
+
+.combination-controls {
+  display: grid;
+  grid-template-columns: 150px 1fr auto;
+  gap: 15px;
+  align-items: center;
+}
+
+.combination-controls select {
+  padding: 8px 12px;
+  border: 1px solid rgba(139, 119, 101, 0.3);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.8);
+  font-size: 0.9em;
+}
+
+.condition-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mini-condition {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.mini-condition label {
+  color: #6b5d54;
+  font-size: 0.8em;
+  font-weight: 500;
+}
+
+.mini-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(139, 119, 101, 0.2);
+  outline: none;
+  margin: 5px 0;
+  padding: 0 !important;
+  border: none !important;
+}
+
+.mini-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #d4a574, #c49660);
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(212, 165, 116, 0.3);
+}
+
+.mini-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #d4a574, #c49660);
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 6px rgba(212, 165, 116, 0.3);
+}
+
+.mini-condition select {
+  padding: 6px 10px;
+  border: 1px solid rgba(139, 119, 101, 0.3);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.8);
+  font-size: 0.8em;
+}
+
+.remove-condition-btn {
+  background: rgba(244, 67, 54, 0.1);
+  color: #d32f2f;
+  border: 1px solid rgba(244, 67, 54, 0.3);
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.8em;
+  transition: all 0.3s ease;
+}
+
+.remove-condition-btn:hover {
+  background: rgba(244, 67, 54, 0.2);
+  transform: translateY(-1px);
+}
+
+.add-condition-btn {
+  background: linear-gradient(135deg, #d4a574, #c49660);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.9em;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  margin-top: 10px;
+}
+
+.add-condition-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(212, 165, 116, 0.3);
+}
+
+/* Mobile responsive for combination alerts */
+@media (max-width: 768px) {
+  .combination-controls {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  
+  .combination-item {
+    padding: 12px;
+  }
+}
+
 @media (max-width: 480px) {
   .create-alert-form {
     padding: 20px;
