@@ -70,12 +70,11 @@
   border: 2px solid #e5e7eb;
   border-radius: 20px;
   padding: 12px;
-  cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  text-align: left;
+  align-items: center;
+  gap: 8px;
+  position: relative;
 }
 
 .stock-item:hover {
@@ -121,4 +120,71 @@
 
 .stock-grid::-webkit-scrollbar-thumb:hover {
   background: #555;
+}
+
+/* Favorites Section */
+.section-header {
+  color: #34495e;
+  font-size: 0.85em;
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin: 20px 0 10px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.star-icon {
+  color: #f59e0b;
+  font-size: 1.2em;
+}
+
+.favorites-section {
+  background: #fffbf0;
+  padding: 10px;
+  border-radius: 15px;
+  margin-bottom: 20px;
+}
+
+.stock-item.favorite {
+  background: #fff;
+  border-color: #f59e0b;
+}
+
+.stock-button {
+  flex: 1;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.favorite-btn {
+  background: none;
+  border: none;
+  color: #d1d5db;
+  font-size: 1.3em;
+  cursor: pointer;
+  padding: 0 5px;
+  transition: all 0.2s ease;
+}
+
+.favorite-btn:hover {
+  color: #f59e0b;
+  transform: scale(1.2);
+}
+
+.favorite-btn.active {
+  color: #f59e0b;
+}
+
+.no-results {
+  text-align: center;
+  padding: 40px;
+  color: #9ca3af;
+  font-style: italic;
 }

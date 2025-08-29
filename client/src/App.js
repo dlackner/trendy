@@ -16,11 +16,21 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('scanner');
   const [apiStatus, setApiStatus] = useState(false);
+  const [favorites, setFavorites] = useState(() => {
+    // Load favorites from localStorage
+    const saved = localStorage.getItem('trendyFavorites');
+    return saved ? JSON.parse(saved) : [];
+  });
 
   useEffect(() => {
     fetchStocks();
     checkApiStatus();
   }, []);
+
+  // Save favorites to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('trendyFavorites', JSON.stringify(favorites));
+  }, [favorites]);
 
   const fetchStocks = async () => {
     try {
@@ -52,6 +62,16 @@ function App() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const toggleFavorite = (symbol) => {
+    setFavorites(prev => {
+      if (prev.includes(symbol)) {
+        return prev.filter(s => s !== symbol);
+      } else {
+        return [...prev, symbol];
+      }
+    });
   };
 
   return (
@@ -103,9 +123,17 @@ function App() {
               stocks={stocks} 
               onSelectStock={analyzeStock}
               selectedStock={selectedStock}
+              favorites={favorites}
+              onToggleFavorite={toggleFavorite}
             />
             {loading && <div className="loading">Analyzing {selectedStock}...</div>}
-            {analysis && !loading && <StockAnalysis data={analysis} />}
+            {analysis && !loading && (
+              <StockAnalysis 
+                data={analysis} 
+                isFavorite={favorites.includes(analysis.symbol)}
+                onToggleFavorite={() => toggleFavorite(analysis.symbol)}
+              />
+            )}
           </div>
         )}
 

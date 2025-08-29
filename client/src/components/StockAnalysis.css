@@ -8,10 +8,49 @@
   margin-bottom: 30px;
 }
 
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
 .analysis-header h2 {
   color: #1f2937;
   font-size: 1.8em;
-  margin-bottom: 15px;
+  margin: 0;
+}
+
+.analysis-favorite-btn {
+  background: white;
+  border: 2px solid #e5e7eb;
+  color: #d1d5db;
+  font-size: 1.3em;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.analysis-favorite-btn:hover {
+  border-color: #f59e0b;
+  color: #f59e0b;
+  transform: scale(1.1);
+}
+
+.analysis-favorite-btn.active {
+  background: #f59e0b;
+  border-color: #f59e0b;
+  color: white;
+}
+
+.analysis-favorite-btn.active:hover {
+  background: #dc8a0b;
+  border-color: #dc8a0b;
 }
 
 .key-metrics {

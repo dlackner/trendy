@@ -2,7 +2,7 @@ import React from 'react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 import './StockAnalysis.css';
 
-function StockAnalysis({ data }) {
+function StockAnalysis({ data, isFavorite = false, onToggleFavorite }) {
   const { symbol, currentPrice, currentStreak, date, probabilities, avgMovePercent, recentData } = data;
 
   // Prepare data for probability chart
@@ -30,7 +30,18 @@ function StockAnalysis({ data }) {
   return (
     <div className="stock-analysis">
       <div className="analysis-header">
-        <h2>{symbol} Analysis</h2>
+        <div className="header-title">
+          <h2>{symbol} Analysis</h2>
+          {onToggleFavorite && (
+            <button
+              className={`analysis-favorite-btn ${isFavorite ? 'active' : ''}`}
+              onClick={onToggleFavorite}
+              title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+            >
+              {isFavorite ? '★' : '☆'}
+            </button>
+          )}
+        </div>
         <div className="key-metrics">
           <div className="metric">
             <span className="label">Current Price:</span>
