@@ -27,17 +27,28 @@
   background: rgba(255, 251, 243, 0.7);
   padding: 30px;
   border-radius: 30px;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 25px;
-  align-items: end;
   margin-bottom: 30px;
   backdrop-filter: blur(10px);
   box-shadow: 0 4px 20px rgba(139, 119, 101, 0.08);
 }
 
 .backtest-controls .portfolio-selector {
-  grid-column: 1 / -1;
+  width: 100%;
+}
+
+.single-stock-selector {
+  width: 100%;
+}
+
+.sliders-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 25px;
+  align-items: end;
+  width: 100%;
 }
 
 .backtest-controls .control-group {
