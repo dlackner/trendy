@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import './App.css';
 import StockList from './components/StockList';
@@ -52,7 +52,7 @@ function App() {
     }
   };
 
-  const analyzeStock = async (symbol) => {
+  const analyzeStock = useCallback(async (symbol) => {
     setLoading(true);
     setSelectedStock(symbol);
     try {
@@ -64,7 +64,20 @@ function App() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  // Auto-load stock on Analysis tab when stocks are available
+  useEffect(() => {
+    if (stocks.length > 0 && activeTab === 'analysis' && !selectedStock && !analysis) {
+      // If user has favorites, load the first one
+      if (favorites.length > 0) {
+        analyzeStock(favorites[0]);
+      } else {
+        // Default to AAPL if no favorites
+        analyzeStock('AAPL');
+      }
+    }
+  }, [stocks, activeTab, selectedStock, analysis, favorites, analyzeStock]);
 
   const toggleFavorite = (symbol) => {
     setFavorites(prev => {
