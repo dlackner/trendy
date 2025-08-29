@@ -225,6 +225,127 @@ app.get('/api/quick-scan', async (req, res) => {
   }
 });
 
+// Portfolio Backtest - test strategy on multiple stocks
+app.post('/api/portfolio-backtest', async (req, res) => {
+  const { symbols, streakLength = 3, lookbackDays = 252, holdDays = 1, initialCapital = 10000 } = req.body;
+  
+  if (!symbols || symbols.length === 0) {
+    return res.status(400).json({ error: 'Please provide at least one stock symbol' });
+  }
+  
+  try {
+    const capitalPerStock = initialCapital / symbols.length;
+    const portfolioResults = [];
+    let totalFinalCapital = 0;
+    let allTrades = [];
+    
+    // Run backtest for each stock
+    for (const symbol of symbols) {
+      try {
+        const data = await analyzer.getHistoricalData(symbol, 'full');
+        
+        // Simple backtest: buy after X red days, sell after holdDays
+        const trades = [];
+        let capital = capitalPerStock;
+        
+        for (let i = streakLength + holdDays; i < Math.min(lookbackDays, data.length); i++) {
+          let hasStreak = true;
+          
+          // Check for red streak
+          for (let j = 0; j < streakLength; j++) {
+            if (data[i - j].close >= data[i - j + 1].close) {
+              hasStreak = false;
+              break;
+            }
+          }
+          
+          if (hasStreak) {
+            const entryPrice = data[i - streakLength].close;
+            const exitPrice = data[i - streakLength - holdDays].close;
+            const returnPct = ((exitPrice - entryPrice) / entryPrice) * 100;
+            
+            capital *= (1 + returnPct / 100);
+            
+            trades.push({
+              symbol,
+              entryDate: data[i - streakLength].date,
+              exitDate: data[i - streakLength - holdDays].date,
+              entryPrice,
+              exitPrice,
+              returnPct,
+              capital
+            });
+          }
+        }
+        
+        const winningTrades = trades.filter(t => t.returnPct > 0);
+        const stockReturn = ((capital - capitalPerStock) / capitalPerStock) * 100;
+        
+        portfolioResults.push({
+          symbol,
+          initialCapital: capitalPerStock,
+          finalCapital: capital,
+          totalReturn: stockReturn,
+          totalTrades: trades.length,
+          winRate: trades.length > 0 ? (winningTrades.length / trades.length) * 100 : 0,
+          avgReturn: trades.length > 0 ? trades.reduce((sum, t) => sum + t.returnPct, 0) / trades.length : 0
+        });
+        
+        totalFinalCapital += capital;
+        allTrades = allTrades.concat(trades);
+        
+      } catch (error) {
+        console.error(`Error backtesting ${symbol}:`, error);
+        portfolioResults.push({
+          symbol,
+          error: error.message,
+          initialCapital: capitalPerStock,
+          finalCapital: capitalPerStock,
+          totalReturn: 0
+        });
+        totalFinalCapital += capitalPerStock;
+      }
+    }
+    
+    // Sort trades by date
+    allTrades.sort((a, b) => new Date(b.entryDate) - new Date(a.entryDate));
+    
+    // Calculate portfolio metrics
+    const portfolioReturn = ((totalFinalCapital - initialCapital) / initialCapital) * 100;
+    const successfulStocks = portfolioResults.filter(r => !r.error);
+    
+    res.json({
+      portfolio: {
+        symbols,
+        initialCapital,
+        finalCapital: totalFinalCapital,
+        totalReturn: portfolioReturn,
+        averageStockReturn: successfulStocks.length > 0 
+          ? successfulStocks.reduce((sum, r) => sum + r.totalReturn, 0) / successfulStocks.length 
+          : 0
+      },
+      settings: {
+        streakLength,
+        holdDays,
+        lookbackDays
+      },
+      stockResults: portfolioResults,
+      recentTrades: allTrades.slice(0, 30), // Show last 30 trades across all stocks
+      summary: {
+        totalTrades: allTrades.length,
+        winningTrades: allTrades.filter(t => t.returnPct > 0).length,
+        losingTrades: allTrades.filter(t => t.returnPct < 0).length,
+        winRate: allTrades.length > 0 
+          ? (allTrades.filter(t => t.returnPct > 0).length / allTrades.length) * 100 
+          : 0
+      }
+    });
+  } catch (error) {
+    console.error('Error in portfolio backtest:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Backtest a strategy
 app.post('/api/backtest', async (req, res) => {
   const { symbol, streakLength = 3, lookbackDays = 252, holdDays = 1 } = req.body;
