@@ -7,10 +7,10 @@ function OpportunityScanner({ apiUrl }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filters, setFilters] = useState({
-    minStreak: 0,
+    minStreak: 2,
     maxStreak: 10,
     minProbability: 0,
-    minAvgReturn: -100,
+    minAvgReturn: 0.1,
     maxAvgReturn: 100,
     sortBy: 'probability',
     sortOrder: 'desc',
