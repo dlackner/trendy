@@ -46,11 +46,14 @@ body::before {
 }
 
 .app-logo {
-  width: 150px;
-  height: auto;
-  margin: 0;
-  filter: sepia(0.3) saturate(0.8) hue-rotate(10deg);
-  opacity: 0.9;
+  width: 120px;
+  height: 120px;
+  margin: 10px 0;
+  filter: drop-shadow(0 4px 10px rgba(139, 119, 101, 0.15));
+  animation: float 6s ease-in-out infinite;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
 }
 
 .App-header h1 {

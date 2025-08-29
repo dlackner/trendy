@@ -6,6 +6,7 @@ import StockAnalysis from './components/StockAnalysis';
 import OpportunityScanner from './components/OpportunityScanner';
 import Backtester from './components/Backtester';
 import Documentation from './components/Documentation';
+import PixelZenGarden from './components/PixelZenGarden';
 
 const API_URL = process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:3001/api';
 
@@ -77,7 +78,9 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <img src="/trendy.png" alt="Trendy" className="app-logo" />
+        <PixelZenGarden className="app-logo" />
+        <h1>TRENDY</h1>
+        <p>Mean Reversion Trading Analysis</p>
         {!apiStatus && (
           <div className="api-warning">
             Alpha Vantage API key not configured. Add your key to the .env file.
