@@ -23,6 +23,13 @@ const analyzer = new StockAnalyzer();
 const cache = new Map();
 const CACHE_DURATION = 60 * 60 * 1000; // 1 hour - balance between freshness and API limits
 
+// Separate cache for full market scan
+const marketScanCache = {
+  data: null,
+  timestamp: null,
+  DURATION: 4 * 60 * 60 * 1000 // 4 hours for full market scan
+};
+
 // Get list of S&P 500 stocks
 app.get('/api/stocks', (req, res) => {
   res.json(SP500_STOCKS);
@@ -106,6 +113,96 @@ app.post('/api/opportunities', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+// Full market scan - analyze ALL S&P 500 stocks with caching
+app.get('/api/market-scan', async (req, res) => {
+  // Check if we have cached data that's still fresh
+  if (marketScanCache.data && 
+      marketScanCache.timestamp && 
+      Date.now() - marketScanCache.timestamp < marketScanCache.DURATION) {
+    return res.json({
+      ...marketScanCache.data,
+      cached: true,
+      cacheAge: Math.floor((Date.now() - marketScanCache.timestamp) / 1000 / 60) + ' minutes'
+    });
+  }
+
+  // If no cache or expired, return current cache (if exists) and trigger background update
+  if (marketScanCache.data) {
+    // Start background update
+    updateMarketScan();
+    
+    return res.json({
+      ...marketScanCache.data,
+      cached: true,
+      updating: true,
+      cacheAge: Math.floor((Date.now() - marketScanCache.timestamp) / 1000 / 60) + ' minutes',
+      message: 'Returning cached data while updating in background'
+    });
+  }
+
+  // If no cache at all, start scan and return loading status
+  updateMarketScan();
+  res.json({
+    scanning: true,
+    message: 'Full market scan initiated. This will take several minutes.',
+    estimatedTime: Math.ceil(SP500_STOCKS.length * 0.8 / 60) + ' minutes',
+    totalStocks: SP500_STOCKS.length
+  });
+});
+
+// Background function to update market scan
+async function updateMarketScan() {
+  try {
+    console.log('Starting full market scan...');
+    const startTime = Date.now();
+    
+    // Analyze all stocks
+    const allStocks = SP500_STOCKS.map(s => s.symbol);
+    const results = [];
+    
+    for (let i = 0; i < allStocks.length; i++) {
+      const symbol = allStocks[i];
+      try {
+        console.log(`Scanning ${i + 1}/${allStocks.length}: ${symbol}`);
+        const analysis = await analyzer.analyzeStock(symbol, 3, 252);
+        
+        // Calculate key metrics for filtering
+        const currentStreakProb = analysis.probabilities[analysis.currentStreak]?.probability || 0;
+        const avgReturn = analysis.avgMovePercent?.average || 0;
+        const posAvgReturn = analysis.avgMovePercent?.positiveAvg || 0;
+        
+        results.push({
+          ...analysis,
+          metrics: {
+            currentStreakProb,
+            avgReturn,
+            posAvgReturn,
+            riskRewardRatio: posAvgReturn / Math.abs(analysis.avgMovePercent?.negativeAvg || 1)
+          }
+        });
+        
+        // Rate limiting
+        await new Promise(resolve => setTimeout(resolve, 800));
+      } catch (error) {
+        console.error(`Failed to analyze ${symbol}:`, error.message);
+      }
+    }
+    
+    // Update cache
+    marketScanCache.data = {
+      results,
+      scanTime: Date.now() - startTime,
+      totalScanned: results.length,
+      timestamp: new Date().toISOString()
+    };
+    marketScanCache.timestamp = Date.now();
+    
+    console.log(`Market scan complete. Scanned ${results.length} stocks in ${Math.floor((Date.now() - startTime) / 1000 / 60)} minutes`);
+  } catch (error) {
+    console.error('Market scan failed:', error);
+  }
+}
 
 // Quick scan - analyze top stocks for opportunities
 app.get('/api/quick-scan', async (req, res) => {

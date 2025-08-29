@@ -1,268 +1,372 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import './OpportunityScanner.css';
 
-function OpportunityScanner({ apiUrl, stocks }) {
-  const [scanning, setScanning] = useState(false);
-  const [opportunities, setOpportunities] = useState([]);
-  const [allResults, setAllResults] = useState([]);
-  const [selectedStocks, setSelectedStocks] = useState([]);
-  const [showStockSelector, setShowStockSelector] = useState(false);
-  const [scanProgress, setScanProgress] = useState(0);
-  const [scanSettings, setScanSettings] = useState({
-    limit: 10,
-    minStreak: 2,
-    minProbability: 60
+function OpportunityScanner({ apiUrl }) {
+  const [marketData, setMarketData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [filters, setFilters] = useState({
+    minStreak: 0,
+    maxStreak: 10,
+    minProbability: 0,
+    minAvgReturn: -100,
+    maxAvgReturn: 100,
+    sortBy: 'probability',
+    sortOrder: 'desc',
+    showOnlyPositiveReturns: false
   });
 
-  const toggleStockSelection = (symbol) => {
-    setSelectedStocks(prev => 
-      prev.includes(symbol) 
-        ? prev.filter(s => s !== symbol)
-        : [...prev, symbol]
-    );
-  };
+  // Fetch market scan data on component mount
+  useEffect(() => {
+    fetchMarketScan();
+    // Set up polling to check for updates every 5 minutes
+    const interval = setInterval(fetchMarketScan, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
 
-  const runQuickScan = async () => {
-    setScanning(true);
-    setScanProgress(0);
+  const fetchMarketScan = async () => {
     try {
-      // Use selected stocks if any, otherwise use top stocks based on limit
-      const stocksToScan = selectedStocks.length > 0 
-        ? selectedStocks 
-        : stocks.slice(0, scanSettings.limit).map(s => s.symbol);
+      const response = await axios.get(`${apiUrl}/market-scan`);
       
-      const response = await axios.post(`${apiUrl}/opportunities`, {
-        symbols: stocksToScan,
-        minStreak: scanSettings.minStreak,
-        minProbability: scanSettings.minProbability
-      }, {
-        timeout: 300000 // 5 minute timeout
-      });
-      setOpportunities(response.data.opportunities || []);
-      setAllResults(response.data.allResults || []);
-    } catch (error) {
-      console.error('Full error object:', error);
-      console.error('Error response:', error.response);
-      console.error('Error message:', error.message);
-      
-      let errorMessage = 'Error running scan. ';
-      if (error.response) {
-        errorMessage += `Server error: ${error.response.status} - ${error.response.data?.error || error.response.statusText}`;
-      } else if (error.request) {
-        errorMessage += 'No response from server. Make sure the backend is running on port 3001.';
-      } else {
-        errorMessage += error.message;
+      if (response.data.scanning) {
+        // Initial scan in progress
+        setLoading(true);
+        setError(null);
+        // Poll more frequently during initial scan
+        setTimeout(fetchMarketScan, 30000); // Check again in 30 seconds
+      } else if (response.data.results) {
+        setMarketData(response.data);
+        setLoading(false);
+        setError(null);
       }
-      alert(errorMessage);
-    } finally {
-      setScanning(false);
+    } catch (err) {
+      console.error('Error fetching market scan:', err);
+      setError('Failed to fetch market data');
+      setLoading(false);
     }
   };
 
-  const runCustomScan = async () => {
-    setScanning(true);
+  // Filter and sort the data
+  const filteredData = useMemo(() => {
+    if (!marketData || !marketData.results) return [];
+
+    let filtered = marketData.results.filter(stock => {
+      // Apply filters
+      if (stock.currentStreak < filters.minStreak || stock.currentStreak > filters.maxStreak) return false;
+      
+      const probability = stock.probabilities[stock.currentStreak]?.probability || 0;
+      if (probability < filters.minProbability) return false;
+      
+      const avgReturn = stock.avgMovePercent?.average || 0;
+      if (avgReturn < filters.minAvgReturn || avgReturn > filters.maxAvgReturn) return false;
+      
+      if (filters.showOnlyPositiveReturns && avgReturn <= 0) return false;
+      
+      return true;
+    });
+
+    // Sort the results
+    filtered.sort((a, b) => {
+      let aVal, bVal;
+      
+      switch (filters.sortBy) {
+        case 'symbol':
+          aVal = a.symbol;
+          bVal = b.symbol;
+          break;
+        case 'streak':
+          aVal = a.currentStreak;
+          bVal = b.currentStreak;
+          break;
+        case 'probability':
+          aVal = a.probabilities[a.currentStreak]?.probability || 0;
+          bVal = b.probabilities[b.currentStreak]?.probability || 0;
+          break;
+        case 'avgReturn':
+          aVal = a.avgMovePercent?.average || 0;
+          bVal = b.avgMovePercent?.average || 0;
+          break;
+        case 'posReturn':
+          aVal = a.avgMovePercent?.positiveAvg || 0;
+          bVal = b.avgMovePercent?.positiveAvg || 0;
+          break;
+        case 'price':
+          aVal = a.currentPrice;
+          bVal = b.currentPrice;
+          break;
+        case 'riskReward':
+          aVal = a.metrics?.riskRewardRatio || 0;
+          bVal = b.metrics?.riskRewardRatio || 0;
+          break;
+        default:
+          aVal = 0;
+          bVal = 0;
+      }
+
+      if (filters.sortOrder === 'desc') {
+        return bVal > aVal ? 1 : -1;
+      } else {
+        return aVal > bVal ? 1 : -1;
+      }
+    });
+
+    return filtered;
+  }, [marketData, filters]);
+
+  const handleFilterChange = (filterName, value) => {
+    setFilters(prev => ({
+      ...prev,
+      [filterName]: value
+    }));
+  };
+
+  const refreshScan = async () => {
+    setLoading(true);
+    // Clear cache and trigger new scan
     try {
-      const symbols = stocks.slice(0, scanSettings.limit).map(s => s.symbol);
-      const response = await axios.post(`${apiUrl}/opportunities`, {
-        symbols,
-        minStreak: scanSettings.minStreak,
-        minProbability: scanSettings.minProbability
-      });
-      setOpportunities(response.data.opportunities);
-    } catch (error) {
-      console.error('Error running custom scan:', error);
-      alert('Error running scan. Please check your API key and try again.');
-    } finally {
-      setScanning(false);
+      await axios.post(`${apiUrl}/clear-cache`);
+      fetchMarketScan();
+    } catch (err) {
+      console.error('Error refreshing scan:', err);
     }
   };
+
+  if (loading && !marketData) {
+    return (
+      <div className="opportunity-scanner">
+        <div className="scanner-header">
+          <h2>MARKET SCANNER</h2>
+          <p>Analyzing all S&P 500 stocks for opportunities</p>
+        </div>
+        <div className="loading-container">
+          <div className="spinner"></div>
+          <p>Scanning market... This may take several minutes on first load</p>
+          <p className="loading-hint">The scan will be cached for faster access later</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="opportunity-scanner">
+        <div className="scanner-header">
+          <h2>MARKET SCANNER</h2>
+        </div>
+        <div className="error-message">
+          <p>{error}</p>
+          <button onClick={fetchMarketScan} className="retry-button">
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="opportunity-scanner">
       <div className="scanner-header">
-        <h2>OPPORTUNITY SCANNER</h2>
-        <p>Identify high probability bounce-back setups</p>
+        <h2>MARKET SCANNER</h2>
+        <p>Real-time S&P 500 opportunity detection</p>
       </div>
 
-      <div className="scan-controls">
-        <div className="control-group">
-          <label>
-            STOCKS TO SCAN: 
-            <span className="value">
-              {selectedStocks.length > 0 
-                ? `${selectedStocks.length} SELECTED` 
-                : `TOP ${scanSettings.limit}`}
-            </span>
-          </label>
-          {selectedStocks.length === 0 && (
-            <>
-              <input 
-                type="range"
-                min="1"
-                max="500"
-                value={scanSettings.limit}
-                onChange={(e) => setScanSettings({...scanSettings, limit: parseInt(e.target.value)})}
-                className="slider"
-              />
-              <span className="scan-time-estimate">
-                Est. time: {Math.ceil(scanSettings.limit * 0.8 / 60)} min {Math.round((scanSettings.limit * 0.8) % 60)} sec
-              </span>
-            </>
-          )}
-          <button 
-            className="select-stocks-btn"
-            onClick={() => setShowStockSelector(!showStockSelector)}
-          >
-            {showStockSelector ? 'HIDE SELECTOR' : 'SELECT SPECIFIC STOCKS'}
-          </button>
+      <div className="scan-info">
+        <div className="info-item">
+          <span className="label">Total Stocks:</span>
+          <span className="value">{marketData?.totalScanned || 0}</span>
         </div>
-
-        <div className="control-group">
-          <label>MINIMUM STREAK: <span className="value">{scanSettings.minStreak} DAYS</span></label>
-          <input 
-            type="range"
-            min="0"
-            max="10"
-            value={scanSettings.minStreak}
-            onChange={(e) => setScanSettings({...scanSettings, minStreak: parseInt(e.target.value)})}
-            className="slider"
-          />
+        <div className="info-item">
+          <span className="label">Opportunities Found:</span>
+          <span className="value">{filteredData.length}</span>
         </div>
-
-        <div className="control-group">
-          <label>MINIMUM PROBABILITY: <span className="value">{scanSettings.minProbability}%</span></label>
-          <input 
-            type="range"
-            min="0"
-            max="100"
-            value={scanSettings.minProbability}
-            onChange={(e) => setScanSettings({...scanSettings, minProbability: parseInt(e.target.value)})}
-            className="slider"
-          />
+        <div className="info-item">
+          <span className="label">Last Updated:</span>
+          <span className="value">
+            {marketData?.cached ? `${marketData.cacheAge} ago` : 'Live'}
+          </span>
         </div>
-
-        <button 
-          className="scan-button" 
-          onClick={runQuickScan} 
-          disabled={scanning}
-        >
-          {scanning ? 'SCANNING...' : 'RUN SCAN'}
+        {marketData?.updating && (
+          <div className="info-item updating">
+            <span className="label">Status:</span>
+            <span className="value">Updating in background...</span>
+          </div>
+        )}
+        <button onClick={refreshScan} className="refresh-button">
+          Refresh Scan
         </button>
       </div>
 
-      {showStockSelector && (
-        <div className="stock-selector">
-          <h3>SELECT STOCKS TO SCAN</h3>
-          <p className="selector-info">
-            {selectedStocks.length > 0 
-              ? `${selectedStocks.length} stocks selected` 
-              : 'Select specific stocks or use the slider for top stocks'}
-          </p>
-          <div className="stock-grid">
-            {stocks.map((stock) => (
-              <button
-                key={stock.symbol}
-                className={`stock-chip ${selectedStocks.includes(stock.symbol) ? 'selected' : ''}`}
-                onClick={() => toggleStockSelection(stock.symbol)}
-              >
-                {stock.symbol}
-              </button>
-            ))}
+      <div className="filters-container">
+        <h3>FILTERS</h3>
+        
+        <div className="filter-row">
+          <div className="filter-group">
+            <label>Min Streak Days</label>
+            <input
+              type="number"
+              min="0"
+              max="10"
+              value={filters.minStreak}
+              onChange={(e) => handleFilterChange('minStreak', parseInt(e.target.value))}
+            />
           </div>
-          {selectedStocks.length > 0 && (
-            <button 
-              className="clear-selection-btn"
-              onClick={() => setSelectedStocks([])}
+          
+          <div className="filter-group">
+            <label>Max Streak Days</label>
+            <input
+              type="number"
+              min="0"
+              max="10"
+              value={filters.maxStreak}
+              onChange={(e) => handleFilterChange('maxStreak', parseInt(e.target.value))}
+            />
+          </div>
+          
+          <div className="filter-group">
+            <label>Min Probability %</label>
+            <input
+              type="number"
+              min="0"
+              max="100"
+              step="5"
+              value={filters.minProbability}
+              onChange={(e) => handleFilterChange('minProbability', parseFloat(e.target.value))}
+            />
+          </div>
+          
+          <div className="filter-group">
+            <label>Min Avg Return %</label>
+            <input
+              type="number"
+              step="0.1"
+              value={filters.minAvgReturn}
+              onChange={(e) => handleFilterChange('minAvgReturn', parseFloat(e.target.value))}
+            />
+          </div>
+        </div>
+
+        <div className="filter-row">
+          <div className="filter-group">
+            <label>Sort By</label>
+            <select
+              value={filters.sortBy}
+              onChange={(e) => handleFilterChange('sortBy', e.target.value)}
             >
-              CLEAR SELECTION
-            </button>
-          )}
+              <option value="probability">Bounce Probability</option>
+              <option value="streak">Current Streak</option>
+              <option value="avgReturn">Avg Return</option>
+              <option value="posReturn">Positive Avg Return</option>
+              <option value="riskReward">Risk/Reward Ratio</option>
+              <option value="price">Stock Price</option>
+              <option value="symbol">Symbol</option>
+            </select>
+          </div>
+          
+          <div className="filter-group">
+            <label>Sort Order</label>
+            <select
+              value={filters.sortOrder}
+              onChange={(e) => handleFilterChange('sortOrder', e.target.value)}
+            >
+              <option value="desc">High to Low</option>
+              <option value="asc">Low to High</option>
+            </select>
+          </div>
+          
+          <div className="filter-group checkbox-group">
+            <label>
+              <input
+                type="checkbox"
+                checked={filters.showOnlyPositiveReturns}
+                onChange={(e) => handleFilterChange('showOnlyPositiveReturns', e.target.checked)}
+              />
+              Positive Returns Only
+            </label>
+          </div>
         </div>
-      )}
+      </div>
 
-      {scanning && (
-        <div className="scanning-message">
-          <div className="spinner"></div>
-          <p>Analyzing stocks... This may take a moment due to API rate limits.</p>
-          {scanSettings.limit > 75 && (
-            <p className="scan-warning">Scanning {scanSettings.limit} stocks at 75 calls/minute will take approximately {Math.ceil(scanSettings.limit * 0.8 / 60)} minutes</p>
-          )}
+      <div className="results-container">
+        <div className="results-header">
+          <h3>OPPORTUNITIES ({filteredData.length})</h3>
         </div>
-      )}
-
-      {opportunities.length > 0 && !scanning && (
-        <div className="opportunities-list">
-          <h3>FOUND {opportunities.length} OPPORTUNITIES</h3>
-          <div className="opportunity-cards">
-            {opportunities.map((opp) => (
-              <div key={opp.symbol} className="opportunity-card">
+        
+        {filteredData.length === 0 ? (
+          <div className="no-results">
+            <p>No stocks match your filter criteria</p>
+            <p className="hint">Try adjusting your filters to see more results</p>
+          </div>
+        ) : (
+          <div className="opportunities-grid">
+            {filteredData.slice(0, 50).map((stock) => (
+              <div key={stock.symbol} className="opportunity-card">
                 <div className="card-header">
-                  <h4>{opp.symbol}</h4>
-                  <span className={`streak-badge ${opp.currentStreak >= 3 ? 'high' : 'medium'}`}>
-                    {opp.currentStreak} day streak
+                  <h4>{stock.symbol}</h4>
+                  <span className={`price ${stock.currentStreak > 0 ? 'red' : 'neutral'}`}>
+                    ${stock.currentPrice.toFixed(2)}
                   </span>
                 </div>
                 
-                <div className="card-metrics">
-                  <div className="metric">
-                    <span className="label">Current Price:</span>
-                    <span className="value">${opp.currentPrice.toFixed(2)}</span>
+                <div className="card-body">
+                  <div className="metric-row">
+                    <span className="metric-label">Streak:</span>
+                    <span className={`metric-value streak-${stock.currentStreak >= 3 ? 'high' : stock.currentStreak >= 2 ? 'medium' : 'low'}`}>
+                      {stock.currentStreak} days
+                    </span>
                   </div>
                   
-                  <div className="metric">
-                    <span className="label">Bounce Probability:</span>
-                    <span className={`value probability ${
-                      opp.probabilities[opp.currentStreak]?.probability >= 70 ? 'high' : 
-                      opp.probabilities[opp.currentStreak]?.probability >= 60 ? 'medium' : 'low'
+                  <div className="metric-row">
+                    <span className="metric-label">Bounce Prob:</span>
+                    <span className={`metric-value prob-${
+                      stock.probabilities[stock.currentStreak]?.probability >= 70 ? 'high' : 
+                      stock.probabilities[stock.currentStreak]?.probability >= 60 ? 'medium' : 'low'
                     }`}>
-                      {opp.probabilities[opp.currentStreak]?.probability.toFixed(1)}%
+                      {stock.probabilities[stock.currentStreak]?.probability.toFixed(1)}%
                     </span>
                   </div>
                   
-                  <div className="metric">
-                    <span className="label">Historical Occurrences:</span>
-                    <span className="value">
-                      {opp.probabilities[opp.currentStreak]?.successes}/
-                      {opp.probabilities[opp.currentStreak]?.occurrences}
+                  <div className="metric-row">
+                    <span className="metric-label">Avg Return:</span>
+                    <span className={`metric-value ${stock.avgMovePercent?.average > 0 ? 'positive' : 'negative'}`}>
+                      {stock.avgMovePercent?.average > 0 ? '+' : ''}{stock.avgMovePercent?.average.toFixed(2)}%
                     </span>
                   </div>
                   
-                  {opp.avgMovePercent && (
-                    <div className="metric">
-                      <span className="label">Avg Move:</span>
-                      <span className={`value ${opp.avgMovePercent.average > 0 ? 'positive' : 'negative'}`}>
-                        {opp.avgMovePercent.average > 0 ? '+' : ''}{opp.avgMovePercent.average.toFixed(2)}%
+                  <div className="metric-row">
+                    <span className="metric-label">Positive Avg:</span>
+                    <span className="metric-value positive">
+                      +{stock.avgMovePercent?.positiveAvg.toFixed(2)}%
+                    </span>
+                  </div>
+                  
+                  <div className="metric-row">
+                    <span className="metric-label">Samples:</span>
+                    <span className="metric-value">
+                      {stock.probabilities[stock.currentStreak]?.occurrences || 0}
+                    </span>
+                  </div>
+                  
+                  {stock.metrics?.riskRewardRatio && (
+                    <div className="metric-row">
+                      <span className="metric-label">Risk/Reward:</span>
+                      <span className="metric-value">
+                        {stock.metrics.riskRewardRatio.toFixed(2)}x
                       </span>
                     </div>
                   )}
                 </div>
-
-                <div className="confidence-meter">
-                  <div className="meter-label">Confidence</div>
-                  <div className="meter-bar">
-                    <div 
-                      className="meter-fill"
-                      style={{
-                        width: `${opp.probabilities[opp.currentStreak]?.probability || 0}%`,
-                        backgroundColor: opp.probabilities[opp.currentStreak]?.probability >= 70 ? '#2c3e50' : 
-                                       opp.probabilities[opp.currentStreak]?.probability >= 60 ? '#34495e' : '#7f8c8d'
-                      }}
-                    />
-                  </div>
-                </div>
               </div>
             ))}
           </div>
-        </div>
-      )}
-
-      {opportunities.length === 0 && allResults.length > 0 && !scanning && (
-        <div className="no-opportunities">
-          <p>NO STOCKS CURRENTLY MEET YOUR CRITERIA</p>
-          <p>Try adjusting the minimum streak or probability settings.</p>
-        </div>
-      )}
+        )}
+        
+        {filteredData.length > 50 && (
+          <div className="results-footer">
+            <p>Showing top 50 of {filteredData.length} results</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
