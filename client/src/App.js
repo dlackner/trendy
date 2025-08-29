@@ -6,9 +6,10 @@ import StockAnalysis from './components/StockAnalysis';
 import OpportunityScanner from './components/OpportunityScanner';
 import Backtester from './components/Backtester';
 import Documentation from './components/Documentation';
+import Alerts from './components/Alerts';
 import PixelZenGarden from './components/PixelZenGarden';
 
-const API_URL = process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:3001/api';
+const API_URL = process.env.NODE_ENV === 'production' ? '/api' : (process.env.REACT_APP_API_URL || 'http://localhost:3001/api');
 
 function App() {
   const [stocks, setStocks] = useState([]);
@@ -107,6 +108,12 @@ function App() {
           BACKTEST
         </button>
         <button 
+          className={activeTab === 'alerts' ? 'active' : ''}
+          onClick={() => setActiveTab('alerts')}
+        >
+          ALERTS
+        </button>
+        <button 
           className={activeTab === 'docs' ? 'active' : ''}
           onClick={() => setActiveTab('docs')}
         >
@@ -141,6 +148,10 @@ function App() {
 
         {activeTab === 'backtest' && (
           <Backtester apiUrl={API_URL} stocks={stocks} />
+        )}
+
+        {activeTab === 'alerts' && (
+          <Alerts apiUrl={API_URL} stocks={stocks} />
         )}
 
         {activeTab === 'docs' && (
