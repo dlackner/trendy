@@ -79,6 +79,7 @@ function App() {
     <div className="App">
       <header className="App-header">
         <PixelZenGarden className="app-logo" />
+        <p className="logo-text">TRENDY</p>
         {!apiStatus && (
           <div className="api-warning">
             Alpha Vantage API key not configured. Add your key to the .env file.

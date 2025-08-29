@@ -10,7 +10,7 @@ function Backtester({ apiUrl, stocks }) {
   const [selectedStocks, setSelectedStocks] = useState([]);
   const [backtestSettings, setBacktestSettings] = useState({
     streakLength: 3,
-    lookbackDays: 252,
+    lookbackDays: 126,
     holdDays: 1,
     initialCapital: 10000
   });
@@ -61,6 +61,16 @@ function Backtester({ apiUrl, stocks }) {
   const addPopularStocks = () => {
     const popularSymbols = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'TSLA', 'META', 'AMD'];
     setSelectedStocks([...new Set([...selectedStocks, ...popularSymbols])]);
+  };
+
+  // Format currency for display
+  const formatCurrency = (value) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(value);
   };
 
   // Prepare chart data based on mode
@@ -161,58 +171,93 @@ function Backtester({ apiUrl, stocks }) {
           </div>
         )}
 
-        <div className="control-group">
-          <label>Initial Capital:</label>
-          <select 
-            value={backtestSettings.initialCapital} 
+        <div className="control-group capital-slider">
+          <label>
+            Initial Capital: {formatCurrency(backtestSettings.initialCapital)}
+          </label>
+          <input 
+            type="range"
+            min="1000"
+            max="100000"
+            step="1000"
+            value={backtestSettings.initialCapital}
             onChange={(e) => setBacktestSettings({...backtestSettings, initialCapital: parseInt(e.target.value)})}
-          >
-            <option value="1000">$1,000</option>
-            <option value="5000">$5,000</option>
-            <option value="10000">$10,000</option>
-            <option value="25000">$25,000</option>
-            <option value="50000">$50,000</option>
-            <option value="100000">$100,000</option>
-          </select>
+            className="slider"
+          />
+          <div className="slider-labels">
+            <span>$1k</span>
+            <span>$25k</span>
+            <span>$50k</span>
+            <span>$75k</span>
+            <span>$100k</span>
+          </div>
         </div>
 
-        <div className="control-group">
-          <label>Red Streak Length:</label>
-          <select 
-            value={backtestSettings.streakLength} 
+        <div className="control-group streak-slider">
+          <label>
+            Red Streak Length: {backtestSettings.streakLength} days
+          </label>
+          <input 
+            type="range"
+            min="1"
+            max="10"
+            value={backtestSettings.streakLength}
             onChange={(e) => setBacktestSettings({...backtestSettings, streakLength: parseInt(e.target.value)})}
-          >
-            <option value="2">2 days</option>
-            <option value="3">3 days</option>
-            <option value="4">4 days</option>
-            <option value="5">5 days</option>
-          </select>
+            className="slider"
+          />
+          <div className="slider-labels">
+            <span>1</span>
+            <span>3</span>
+            <span>5</span>
+            <span>7</span>
+            <span>10</span>
+          </div>
         </div>
 
-        <div className="control-group">
-          <label>Hold Days:</label>
-          <select 
-            value={backtestSettings.holdDays} 
+        <div className="control-group hold-slider">
+          <label>
+            Hold Days: {backtestSettings.holdDays} {backtestSettings.holdDays === 1 ? 'day' : 'days'}
+          </label>
+          <input 
+            type="range"
+            min="1"
+            max="10"
+            value={backtestSettings.holdDays}
             onChange={(e) => setBacktestSettings({...backtestSettings, holdDays: parseInt(e.target.value)})}
-          >
-            <option value="1">1 day</option>
-            <option value="2">2 days</option>
-            <option value="3">3 days</option>
-            <option value="5">5 days</option>
-          </select>
+            className="slider"
+          />
+          <div className="slider-labels">
+            <span>1</span>
+            <span>3</span>
+            <span>5</span>
+            <span>7</span>
+            <span>10</span>
+          </div>
         </div>
 
-        <div className="control-group">
-          <label>Lookback Period:</label>
-          <select 
-            value={backtestSettings.lookbackDays} 
+        <div className="control-group lookback-slider">
+          <label>
+            Lookback Period: {backtestSettings.lookbackDays} days 
+            {backtestSettings.lookbackDays <= 21 && ' (~1 month)'}
+            {backtestSettings.lookbackDays > 21 && backtestSettings.lookbackDays <= 63 && ' (~3 months)'}
+            {backtestSettings.lookbackDays > 63 && backtestSettings.lookbackDays <= 126 && ' (~6 months)'}
+            {backtestSettings.lookbackDays > 126 && backtestSettings.lookbackDays <= 189 && ' (~9 months)'}
+            {backtestSettings.lookbackDays > 189 && ' (~1 year)'}
+          </label>
+          <input 
+            type="range"
+            min="5"
+            max="252"
+            value={backtestSettings.lookbackDays}
             onChange={(e) => setBacktestSettings({...backtestSettings, lookbackDays: parseInt(e.target.value)})}
-          >
-            <option value="90">3 months</option>
-            <option value="180">6 months</option>
-            <option value="252">1 year</option>
-            <option value="504">2 years</option>
-          </select>
+            className="slider"
+          />
+          <div className="slider-labels">
+            <span>5d</span>
+            <span>3mo</span>
+            <span>6mo</span>
+            <span>1yr</span>
+          </div>
         </div>
 
         <button 

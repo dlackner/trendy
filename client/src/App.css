@@ -48,12 +48,21 @@ body::before {
 .app-logo {
   width: 120px;
   height: 120px;
-  margin: 10px 0;
+  margin: 10px 0 5px 0;
   filter: drop-shadow(0 4px 10px rgba(139, 119, 101, 0.15));
   animation: float 6s ease-in-out infinite;
   image-rendering: pixelated;
   image-rendering: -moz-crisp-edges;
   image-rendering: crisp-edges;
+}
+
+.logo-text {
+  color: #6b5d54;
+  font-size: 0.9em;
+  letter-spacing: 3px;
+  margin: 0;
+  opacity: 0.7;
+  font-weight: 300;
 }
 
 .App-header h1 {
