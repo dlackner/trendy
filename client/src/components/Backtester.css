@@ -1,32 +1,39 @@
 .backtester {
   width: 100%;
+  animation: fadeIn 0.6s ease-out;
 }
 
 .backtester-header {
   text-align: center;
   margin-bottom: 30px;
+  animation: slideUp 0.5s ease-out;
 }
 
 .backtester-header h2 {
-  color: #1f2937;
-  font-size: 1.8em;
+  color: #3d3028;
+  font-size: 1.6em;
   margin-bottom: 10px;
+  font-weight: 400;
+  letter-spacing: 2px;
 }
 
 .backtester-header p {
-  color: #6b7280;
-  font-size: 1.1em;
+  color: #8b7765;
+  font-size: 0.95em;
+  opacity: 0.8;
 }
 
 .backtest-controls {
-  background: #f9fafb;
-  padding: 25px;
-  border-radius: 12px;
+  background: rgba(255, 251, 243, 0.7);
+  padding: 30px;
+  border-radius: 30px;
   display: flex;
-  gap: 20px;
+  gap: 25px;
   align-items: end;
   flex-wrap: wrap;
   margin-bottom: 30px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 20px rgba(139, 119, 101, 0.08);
 }
 
 .backtest-controls .control-group {
@@ -38,58 +45,63 @@
 }
 
 .backtest-controls .control-group label {
-  color: #374151;
-  font-weight: 600;
-  font-size: 0.9em;
+  color: #6b5d54;
+  font-weight: 500;
+  font-size: 0.8em;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.9;
 }
 
 .backtest-controls select {
-  padding: 10px 12px;
-  border: 2px solid #e5e7eb;
-  border-radius: 6px;
-  font-size: 1em;
-  background: white;
+  padding: 12px 16px;
+  border: 1px solid rgba(139, 119, 101, 0.2);
+  border-radius: 15px;
+  font-size: 0.95em;
+  background: rgba(255, 255, 255, 0.5);
   cursor: pointer;
-  transition: border-color 0.2s;
+  transition: all 0.3s ease;
+  color: #3d3028;
 }
 
 .backtest-controls select:hover {
-  border-color: #667eea;
+  border-color: #8b7765;
+  background: rgba(255, 255, 255, 0.7);
 }
 
 .backtest-controls select:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #8b7765;
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 0 0 3px rgba(139, 119, 101, 0.1);
 }
 
 .run-backtest-button {
-  background: #2c3e50;
-  color: white;
-  border: 2px solid #2c3e50;
+  background: linear-gradient(135deg, #8b7765 0%, #6b5d54 100%);
+  color: #fffbf3;
+  border: none;
   padding: 12px 32px;
   border-radius: 25px;
-  font-size: 0.95em;
-  font-weight: 600;
+  font-size: 0.85em;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
   display: flex;
   align-items: center;
   gap: 8px;
   white-space: nowrap;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
+  box-shadow: 0 4px 15px rgba(139, 119, 101, 0.2);
 }
 
 .run-backtest-button:hover:not(:disabled) {
-  background: #34495e;
-  border-color: #34495e;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(44, 62, 80, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(139, 119, 101, 0.3);
 }
 
 .run-backtest-button:disabled {
-  opacity: 0.7;
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
@@ -108,11 +120,24 @@
   }
 }
 
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .backtest-results h3 {
-  color: #1f2937;
-  font-size: 1.5em;
+  color: #3d3028;
+  font-size: 1.3em;
   margin-bottom: 25px;
   text-align: center;
+  font-weight: 400;
+  letter-spacing: 2px;
 }
 
 .results-summary {
@@ -123,25 +148,26 @@
 }
 
 .result-card {
-  background: white;
-  border: 2px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 20px;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(139, 119, 101, 0.15);
+  border-radius: 20px;
+  padding: 24px;
   display: flex;
   align-items: center;
   gap: 15px;
   transition: all 0.3s ease;
+  backdrop-filter: blur(5px);
 }
 
 .result-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-  border-color: #667eea;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(139, 119, 101, 0.15);
+  background: rgba(255, 255, 255, 0.8);
 }
 
 .result-card .icon {
-  font-size: 2em;
-  color: #667eea;
+  font-size: 1.8em;
+  color: #8b7765;
 }
 
 .result-content {
@@ -151,90 +177,101 @@
 }
 
 .result-content .label {
-  color: #6b7280;
-  font-size: 0.9em;
+  color: #8b7765;
+  font-size: 0.85em;
   margin-bottom: 4px;
+  opacity: 0.8;
 }
 
 .result-content .value {
-  color: #1f2937;
-  font-size: 1.4em;
-  font-weight: 700;
+  color: #3d3028;
+  font-size: 1.3em;
+  font-weight: 500;
 }
 
 .result-content .value.positive {
-  color: #10b981;
+  color: #7a9a65;
 }
 
 .result-content .value.negative {
-  color: #ef4444;
+  color: #c97a5d;
 }
 
 .result-content .sublabel {
-  color: #9ca3af;
-  font-size: 0.85em;
+  color: #a09080;
+  font-size: 0.8em;
   margin-top: 4px;
+  opacity: 0.7;
 }
 
 .chart-section {
-  background: #f9fafb;
-  padding: 25px;
-  border-radius: 12px;
+  background: rgba(255, 251, 243, 0.7);
+  padding: 30px;
+  border-radius: 25px;
   margin-bottom: 30px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 20px rgba(139, 119, 101, 0.08);
 }
 
 .chart-section h4 {
-  color: #374151;
+  color: #3d3028;
   margin-bottom: 20px;
-  font-size: 1.2em;
+  font-size: 1.1em;
+  font-weight: 400;
+  letter-spacing: 1.5px;
 }
 
 .trades-table {
-  background: #f9fafb;
-  padding: 25px;
-  border-radius: 12px;
+  background: rgba(255, 251, 243, 0.7);
+  padding: 30px;
+  border-radius: 25px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 20px rgba(139, 119, 101, 0.08);
 }
 
 .trades-table h4 {
-  color: #374151;
+  color: #3d3028;
   margin-bottom: 20px;
-  font-size: 1.2em;
+  font-size: 1.1em;
+  font-weight: 400;
+  letter-spacing: 1.5px;
 }
 
 .trades-table table {
   width: 100%;
   border-collapse: collapse;
-  background: white;
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 15px;
   overflow: hidden;
 }
 
 .trades-table th {
-  background: #e5e7eb;
-  color: #374151;
-  padding: 12px;
+  background: rgba(139, 119, 101, 0.08);
+  color: #3d3028;
+  padding: 14px;
   text-align: left;
-  font-weight: 600;
-  font-size: 0.9em;
+  font-weight: 500;
+  font-size: 0.85em;
   text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .trades-table td {
-  padding: 12px;
-  border-bottom: 1px solid #f3f4f6;
-  color: #1f2937;
+  padding: 14px;
+  border-bottom: 1px solid rgba(139, 119, 101, 0.1);
+  color: #6b5d54;
 }
 
 .trades-table tr:hover {
-  background: #fef3c7;
+  background: rgba(212, 165, 116, 0.15);
 }
 
 .trades-table td.positive {
-  color: #10b981;
-  font-weight: 600;
+  color: #7a9a65;
+  font-weight: 500;
 }
 
 .trades-table td.negative {
-  color: #ef4444;
-  font-weight: 600;
+  color: #c97a5d;
+  font-weight: 500;
 }

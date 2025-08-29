@@ -1,10 +1,11 @@
 .stock-analysis {
   width: 100%;
+  animation: fadeIn 0.6s ease-out;
 }
 
 .analysis-header {
-  border-bottom: 2px solid #e5e7eb;
-  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(139, 119, 101, 0.15);
+  padding-bottom: 25px;
   margin-bottom: 30px;
 }
 
@@ -16,16 +17,18 @@
 }
 
 .analysis-header h2 {
-  color: #1f2937;
-  font-size: 1.8em;
+  color: #3d3028;
+  font-size: 1.6em;
   margin: 0;
+  font-weight: 400;
+  letter-spacing: 2px;
 }
 
 .analysis-favorite-btn {
-  background: white;
-  border: 2px solid #e5e7eb;
-  color: #d1d5db;
-  font-size: 1.3em;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(139, 119, 101, 0.2);
+  color: rgba(139, 119, 101, 0.4);
+  font-size: 1.2em;
   width: 40px;
   height: 40px;
   border-radius: 50%;
@@ -34,23 +37,26 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  backdrop-filter: blur(5px);
 }
 
 .analysis-favorite-btn:hover {
-  border-color: #f59e0b;
-  color: #f59e0b;
-  transform: scale(1.1);
+  border-color: #d4a574;
+  color: #d4a574;
+  transform: scale(1.08);
+  box-shadow: 0 2px 10px rgba(212, 165, 116, 0.2);
 }
 
 .analysis-favorite-btn.active {
-  background: #f59e0b;
-  border-color: #f59e0b;
-  color: white;
+  background: linear-gradient(135deg, #d4a574 0%, #c9a882 100%);
+  border-color: #d4a574;
+  color: #fffbf3;
+  box-shadow: 0 2px 10px rgba(212, 165, 116, 0.3);
 }
 
 .analysis-favorite-btn.active:hover {
-  background: #dc8a0b;
-  border-color: #dc8a0b;
+  background: linear-gradient(135deg, #c9a882 0%, #b89568 100%);
+  border-color: #c9a882;
 }
 
 .key-metrics {
@@ -65,55 +71,65 @@
 }
 
 .metric .label {
-  color: #6b7280;
-  font-size: 0.9em;
+  color: #8b7765;
+  font-size: 0.85em;
   margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.8;
 }
 
 .metric .value {
-  color: #1f2937;
-  font-size: 1.2em;
-  font-weight: 600;
+  color: #3d3028;
+  font-size: 1.15em;
+  font-weight: 500;
 }
 
 .metric .value.red-streak {
-  color: #ef4444;
+  color: #c97a5d;
 }
 
 .metric .value.no-streak {
-  color: #10b981;
+  color: #7a9a65;
 }
 
 .opportunity-alert {
-  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-  color: white;
-  padding: 20px;
-  border-radius: 12px;
+  background: linear-gradient(135deg, #d4a574 0%, #c9a882 100%);
+  color: #fffbf3;
+  padding: 25px;
+  border-radius: 25px;
   margin-bottom: 30px;
-  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+  box-shadow: 0 6px 20px rgba(212, 165, 116, 0.25);
+  backdrop-filter: blur(10px);
+  animation: slideUp 0.6s ease-out;
 }
 
 .opportunity-alert h3 {
-  font-size: 1.3em;
-  margin-bottom: 10px;
+  font-size: 1.2em;
+  margin-bottom: 15px;
+  font-weight: 400;
+  letter-spacing: 1px;
 }
 
 .opportunity-alert p {
-  margin-bottom: 8px;
-  line-height: 1.5;
+  margin-bottom: 10px;
+  line-height: 1.6;
+  opacity: 0.95;
 }
 
 .opportunity-alert strong {
-  font-size: 1.2em;
-  text-decoration: underline;
+  font-size: 1.15em;
+  font-weight: 600;
+  text-decoration: none;
+  color: #fff;
 }
 
 .opportunity-alert .positive {
-  color: #10b981;
+  color: #a8d4a0;
 }
 
 .opportunity-alert .negative {
-  color: #ef4444;
+  color: #e8b0a0;
 }
 
 .charts-container {
@@ -130,27 +146,41 @@
 }
 
 .chart {
-  background: #f9fafb;
-  padding: 20px;
-  border-radius: 12px;
+  background: rgba(255, 251, 243, 0.7);
+  padding: 25px;
+  border-radius: 25px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 20px rgba(139, 119, 101, 0.08);
+  transition: all 0.3s ease;
+}
+
+.chart:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(139, 119, 101, 0.12);
 }
 
 .chart h3 {
-  color: #374151;
+  color: #3d3028;
   margin-bottom: 20px;
-  font-size: 1.1em;
+  font-size: 1em;
+  font-weight: 400;
+  letter-spacing: 1.5px;
 }
 
 .probability-table {
-  background: #f9fafb;
-  padding: 20px;
-  border-radius: 12px;
+  background: rgba(255, 251, 243, 0.7);
+  padding: 25px;
+  border-radius: 25px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 20px rgba(139, 119, 101, 0.08);
 }
 
 .probability-table h3 {
-  color: #374151;
+  color: #3d3028;
   margin-bottom: 20px;
-  font-size: 1.1em;
+  font-size: 1em;
+  font-weight: 400;
+  letter-spacing: 1.5px;
 }
 
 .probability-table table {
@@ -159,41 +189,68 @@
 }
 
 .probability-table th {
-  background: #e5e7eb;
-  color: #374151;
-  padding: 12px;
+  background: rgba(139, 119, 101, 0.08);
+  color: #3d3028;
+  padding: 14px;
   text-align: left;
-  font-weight: 600;
+  font-weight: 500;
+  font-size: 0.85em;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .probability-table td {
-  padding: 12px;
-  border-bottom: 1px solid #e5e7eb;
+  padding: 14px;
+  border-bottom: 1px solid rgba(139, 119, 101, 0.1);
+  color: #6b5d54;
 }
 
 .probability-table tr.current {
-  background: #fef3c7;
+  background: rgba(212, 165, 116, 0.15);
 }
 
 .probability-badge {
   display: inline-block;
-  padding: 4px 12px;
+  padding: 5px 14px;
   border-radius: 20px;
-  font-weight: 600;
-  font-size: 0.9em;
+  font-weight: 500;
+  font-size: 0.85em;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .probability-badge.high {
-  background: #10b981;
-  color: white;
+  background: linear-gradient(135deg, #7a9a65 0%, #88a673 100%);
+  color: #fffbf3;
 }
 
 .probability-badge.medium {
-  background: #fbbf24;
-  color: white;
+  background: linear-gradient(135deg, #d4a574 0%, #c9a882 100%);
+  color: #fffbf3;
 }
 
 .probability-badge.low {
-  background: #ef4444;
-  color: white;
+  background: linear-gradient(135deg, #c97a5d 0%, #b56a4d 100%);
+  color: #fffbf3;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
