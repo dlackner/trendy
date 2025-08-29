@@ -21,7 +21,7 @@ const analyzer = new StockAnalyzer();
 
 // Cache for stock data to avoid hitting API limits
 const cache = new Map();
-const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours - since we hit daily limits
+const CACHE_DURATION = 60 * 60 * 1000; // 1 hour - balance between freshness and API limits
 
 // Get list of S&P 500 stocks
 app.get('/api/stocks', (req, res) => {
@@ -193,6 +193,19 @@ app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'ok', 
     apiKeySet: !!process.env.ALPHA_VANTAGE_API_KEY,
+    timestamp: new Date().toISOString(),
+    cacheSize: cache.size,
+    cacheDuration: CACHE_DURATION / 1000 / 60 + ' minutes'
+  });
+});
+
+// Clear cache endpoint (useful for getting fresh data)
+app.post('/api/clear-cache', (req, res) => {
+  const oldSize = cache.size;
+  cache.clear();
+  res.json({ 
+    message: 'Cache cleared successfully',
+    itemsCleared: oldSize,
     timestamp: new Date().toISOString()
   });
 });

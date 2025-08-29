@@ -10,7 +10,16 @@ class StockAnalyzer {
   async getHistoricalData(symbol, outputSize = 'compact') {
     try {
       const data = await this.alpha.data.daily(symbol, outputSize);
-      return this.processTimeSeries(data['Time Series (Daily)']);
+      const timeSeries = data['Time Series (Daily)'];
+      
+      // Log the most recent date to verify freshness
+      const dates = Object.keys(timeSeries);
+      if (dates.length > 0) {
+        const mostRecentDate = dates.sort((a, b) => new Date(b) - new Date(a))[0];
+        console.log(`${symbol}: Most recent data from ${mostRecentDate}`);
+      }
+      
+      return this.processTimeSeries(timeSeries);
     } catch (error) {
       console.error(`Error fetching data for ${symbol}:`, error);
       throw error;
