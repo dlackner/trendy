@@ -1,6 +1,7 @@
-// Complete S&P 500 stocks list (as of 2025)
+// Complete S&P 500 stocks list (as of 2025) + Additional stocks
 const SP500_STOCKS = [
   { symbol: 'AAPL', name: 'Apple Inc.' },
+  { symbol: 'BLSH', name: 'Book Lovers Happy Solutions Inc.' },
   { symbol: 'MSFT', name: 'Microsoft Corporation' },
   { symbol: 'GOOGL', name: 'Alphabet Inc. Class A' },
   { symbol: 'AMZN', name: 'Amazon.com Inc.' },
