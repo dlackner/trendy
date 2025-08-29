@@ -62,7 +62,7 @@ function StockAnalysis({ data, isFavorite = false, onToggleFavorite }) {
 
       {currentStreak > 0 && probabilities[currentStreak] && (
         <div className="opportunity-alert">
-          <h3>🎯 Current Opportunity</h3>
+          <h3>Current Opportunity</h3>
           <p>
             After {currentStreak} red days, {symbol} has a{' '}
             <strong>{probabilities[currentStreak].probability.toFixed(1)}%</strong> chance of being green tomorrow
