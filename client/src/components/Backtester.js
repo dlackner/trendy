@@ -1,13 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { FaPlay, FaChartBar, FaPercent, FaDollarSign, FaBriefcase } from 'react-icons/fa';
 import './Backtester.css';
 
 function Backtester({ apiUrl, stocks }) {
-  const [mode, setMode] = useState('single'); // 'single' or 'portfolio'
-  const [selectedStock, setSelectedStock] = useState('');
-  const [selectedStocks, setSelectedStocks] = useState([]);
+  const defaultTechStocks = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'TSLA', 'META', 'AMD'];
+  const [selectedStocks, setSelectedStocks] = useState(defaultTechStocks);
   const [backtestSettings, setBacktestSettings] = useState({
     streakLength: 3,
     lookbackDays: 126,
@@ -17,31 +16,26 @@ function Backtester({ apiUrl, stocks }) {
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const runBacktest = async () => {
-    if (mode === 'single' && !selectedStock) {
-      alert('Please select a stock to backtest');
-      return;
+  // Auto-run backtest on component mount with default stocks
+  useEffect(() => {
+    if (stocks.length > 0 && selectedStocks.length > 0 && !results) {
+      runBacktest();
     }
-    if (mode === 'portfolio' && selectedStocks.length === 0) {
+  }, [stocks]); // Only trigger when stocks are loaded
+
+  const runBacktest = async () => {
+    if (selectedStocks.length === 0) {
       alert('Please select at least one stock for portfolio backtest');
       return;
     }
 
     setLoading(true);
     try {
-      if (mode === 'single') {
-        const response = await axios.post(`${apiUrl}/backtest`, {
-          symbol: selectedStock,
-          ...backtestSettings
-        });
-        setResults({ mode: 'single', data: response.data });
-      } else {
-        const response = await axios.post(`${apiUrl}/portfolio-backtest`, {
-          symbols: selectedStocks,
-          ...backtestSettings
-        });
-        setResults({ mode: 'portfolio', data: response.data });
-      }
+      const response = await axios.post(`${apiUrl}/portfolio-backtest`, {
+        symbols: selectedStocks,
+        ...backtestSettings
+      });
+      setResults({ mode: 'portfolio', data: response.data });
     } catch (error) {
       console.error('Error running backtest:', error);
       alert('Error running backtest. Please try again.');
@@ -59,8 +53,7 @@ function Backtester({ apiUrl, stocks }) {
   };
 
   const addPopularStocks = () => {
-    const popularSymbols = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'TSLA', 'META', 'AMD'];
-    setSelectedStocks([...new Set([...selectedStocks, ...popularSymbols])]);
+    setSelectedStocks([...new Set([...selectedStocks, ...defaultTechStocks])]);
   };
 
   // Format currency for display
@@ -73,27 +66,19 @@ function Backtester({ apiUrl, stocks }) {
     }).format(value);
   };
 
-  // Prepare chart data based on mode
-  const chartData = results?.mode === 'single' 
-    ? results.data?.trades?.map((trade, index) => ({
-        trade: index + 1,
-        return: trade.returnPct,
-        capital: trade.capital
-      })) || []
-    : results?.data?.recentTrades?.map((trade, index) => ({
-        trade: index + 1,
-        return: trade.returnPct,
-        symbol: trade.symbol
-      })) || [];
+  // Prepare chart data for portfolio
+  const chartData = results?.data?.recentTrades?.map((trade, index) => ({
+      trade: index + 1,
+      return: trade.returnPct,
+      symbol: trade.symbol
+    })) || [];
 
   // Prepare pie chart data for portfolio
-  const pieData = results?.mode === 'portfolio' 
-    ? results.data?.stockResults?.map(stock => ({
-        name: stock.symbol,
-        value: stock.finalCapital,
-        return: stock.totalReturn
-      })) || []
-    : [];
+  const pieData = results?.data?.stockResults?.map(stock => ({
+      name: stock.symbol,
+      value: stock.finalCapital,
+      return: stock.totalReturn
+    })) || [];
 
   const COLORS = ['#7a9a65', '#88a673', '#96b381', '#a4c08f', '#b2cd9d', '#c0daab', '#cee7b9'];
 
@@ -104,131 +89,8 @@ function Backtester({ apiUrl, stocks }) {
         <p>Test the bounce-back strategy on historical data</p>
       </div>
 
-      {/* Mode Selection */}
-      <div className="mode-selector">
-        <button 
-          className={`mode-btn ${mode === 'single' ? 'active' : ''}`}
-          onClick={() => setMode('single')}
-        >
-          <FaChartBar /> Single Stock
-        </button>
-        <button 
-          className={`mode-btn ${mode === 'portfolio' ? 'active' : ''}`}
-          onClick={() => setMode('portfolio')}
-        >
-          <FaBriefcase /> Portfolio
-        </button>
-      </div>
 
       <div className="backtest-controls">
-        {mode === 'single' ? (
-          <>
-            <div className="control-group single-stock-selector">
-              <label>Stock Symbol:</label>
-              <select 
-                value={selectedStock} 
-                onChange={(e) => setSelectedStock(e.target.value)}
-              >
-                <option value="">Select a stock...</option>
-                {stocks.map(stock => (
-                  <option key={stock.symbol} value={stock.symbol}>
-                    {stock.symbol} - {stock.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="sliders-row">
-              <div className="control-group capital-slider">
-                <label>
-                  Initial Capital: {formatCurrency(backtestSettings.initialCapital)}
-                </label>
-                <input 
-                  type="range"
-                  min="1000"
-                  max="100000"
-                  step="1000"
-                  value={backtestSettings.initialCapital}
-                  onChange={(e) => setBacktestSettings({...backtestSettings, initialCapital: parseInt(e.target.value)})}
-                  className="slider"
-                />
-                <div className="slider-labels">
-                  <span>$1k</span>
-                  <span>$25k</span>
-                  <span>$50k</span>
-                  <span>$75k</span>
-                  <span>$100k</span>
-                </div>
-              </div>
-
-              <div className="control-group streak-slider">
-                <label>
-                  Red Streak Length: {backtestSettings.streakLength} days
-                </label>
-                <input 
-                  type="range"
-                  min="1"
-                  max="10"
-                  value={backtestSettings.streakLength}
-                  onChange={(e) => setBacktestSettings({...backtestSettings, streakLength: parseInt(e.target.value)})}
-                  className="slider"
-                />
-                <div className="slider-labels">
-                  <span>1</span>
-                  <span>3</span>
-                  <span>5</span>
-                  <span>7</span>
-                  <span>10</span>
-                </div>
-              </div>
-
-              <div className="control-group hold-slider">
-                <label>
-                  Hold Days: {backtestSettings.holdDays} {backtestSettings.holdDays === 1 ? 'day' : 'days'}
-                </label>
-                <input 
-                  type="range"
-                  min="1"
-                  max="10"
-                  value={backtestSettings.holdDays}
-                  onChange={(e) => setBacktestSettings({...backtestSettings, holdDays: parseInt(e.target.value)})}
-                  className="slider"
-                />
-                <div className="slider-labels">
-                  <span>1</span>
-                  <span>3</span>
-                  <span>5</span>
-                  <span>7</span>
-                  <span>10</span>
-                </div>
-              </div>
-
-              <div className="control-group lookback-slider">
-                <label>
-                  Lookback Period: {backtestSettings.lookbackDays} days 
-                  {backtestSettings.lookbackDays <= 21 && ' (~1 month)'}
-                  {backtestSettings.lookbackDays > 21 && backtestSettings.lookbackDays <= 63 && ' (~3 months)'}
-                  {backtestSettings.lookbackDays > 63 && backtestSettings.lookbackDays <= 126 && ' (~6 months)'}
-                  {backtestSettings.lookbackDays > 126 && backtestSettings.lookbackDays <= 189 && ' (~9 months)'}
-                  {backtestSettings.lookbackDays > 189 && ' (~1 year)'}
-                </label>
-                <input 
-                  type="range"
-                  min="5"
-                  max="252"
-                  value={backtestSettings.lookbackDays}
-                  onChange={(e) => setBacktestSettings({...backtestSettings, lookbackDays: parseInt(e.target.value)})}
-                  className="slider"
-                />
-                <div className="slider-labels">
-                  <span>5d</span>
-                  <span>3mo</span>
-                  <span>6mo</span>
-                  <span>1yr</span>
-                </div>
-              </div>
-            </div>
-          </>
-        ) : (
           <div className="control-group portfolio-selector">
             <label>Select Stocks ({selectedStocks.length} selected):</label>
             <div className="stock-chips">
@@ -351,7 +213,6 @@ function Backtester({ apiUrl, stocks }) {
               </div>
             </div>
           </div>
-        )}
 
         <button 
           className="run-backtest-button"
@@ -366,52 +227,7 @@ function Backtester({ apiUrl, stocks }) {
         <div className="backtest-results">
           <h3>BACKTEST RESULTS</h3>
           
-          {results.mode === 'single' ? (
-            // Single Stock Results
-            <div className="results-summary">
-              <div className="result-card">
-                <div className="icon"><FaDollarSign /></div>
-                <div className="result-content">
-                  <span className="label">Final Capital</span>
-                  <span className={`value ${results.data.totalReturn >= 0 ? 'positive' : 'negative'}`}>
-                    ${results.data.finalCapital?.toFixed(2) || '0'}
-                  </span>
-                  <span className="sublabel">Started with ${backtestSettings.initialCapital}</span>
-                </div>
-              </div>
-
-              <div className="result-card">
-                <div className="icon"><FaPercent /></div>
-                <div className="result-content">
-                  <span className="label">Total Return</span>
-                  <span className={`value ${results.data.totalReturn >= 0 ? 'positive' : 'negative'}`}>
-                    {results.data.totalReturn >= 0 ? '+' : ''}{results.data.totalReturn?.toFixed(2) || '0'}%
-                  </span>
-                </div>
-              </div>
-
-              <div className="result-card">
-                <div className="icon"><FaChartBar /></div>
-                <div className="result-content">
-                  <span className="label">Win Rate</span>
-                  <span className="value">{results.data.winRate?.toFixed(1) || '0'}%</span>
-                  <span className="sublabel">{results.data.totalTrades || 0} total trades</span>
-                </div>
-              </div>
-
-              <div className="result-card">
-                <div className="icon"><FaPercent /></div>
-                <div className="result-content">
-                  <span className="label">Avg Return/Trade</span>
-                  <span className={`value ${results.data.avgReturn >= 0 ? 'positive' : 'negative'}`}>
-                    {results.data.avgReturn >= 0 ? '+' : ''}{results.data.avgReturn?.toFixed(2) || '0'}%
-                  </span>
-                </div>
-              </div>
-            </div>
-          ) : (
-            // Portfolio Results
-            <>
+          {/* Portfolio Results */}
               <div className="results-summary">
                 <div className="result-card">
                   <div className="icon"><FaBriefcase /></div>
@@ -508,8 +324,6 @@ function Backtester({ apiUrl, stocks }) {
                   </tbody>
                 </table>
               </div>
-            </>
-          )}
 
           {/* Trade Chart */}
           {chartData.length > 0 && (
@@ -534,7 +348,7 @@ function Backtester({ apiUrl, stocks }) {
             <table>
               <thead>
                 <tr>
-                  {results.mode === 'portfolio' && <th>Symbol</th>}
+                  <th>Symbol</th>
                   <th>Entry Date</th>
                   <th>Exit Date</th>
                   <th>Entry Price</th>
@@ -543,9 +357,9 @@ function Backtester({ apiUrl, stocks }) {
                 </tr>
               </thead>
               <tbody>
-                {(results.mode === 'single' ? results.data.trades : results.data.recentTrades)?.slice(0, 20).map((trade, idx) => (
+                {results.data.recentTrades?.slice(0, 20).map((trade, idx) => (
                   <tr key={idx}>
-                    {results.mode === 'portfolio' && <td>{trade.symbol}</td>}
+                    <td>{trade.symbol}</td>
                     <td>{trade.entryDate}</td>
                     <td>{trade.exitDate}</td>
                     <td>${trade.entryPrice?.toFixed(2)}</td>
